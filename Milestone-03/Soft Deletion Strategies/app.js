@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const usersRoute = require('./routes/users');
@@ -10,22 +9,24 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware configuration
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Primary API Endpoints
+// API routes
 app.use('/users', usersRoute);
 app.use('/accounts', accountsRoute);
 app.use('/transactions', transactionsRoute);
 
-// Simple health check endpoint
+// Health check
 app.get('/', (req, res) => {
   res.json({ message: 'LedgerApp API is running' });
 });
 
-// App server startup
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Start only when executed directly, not when imported by tests.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
