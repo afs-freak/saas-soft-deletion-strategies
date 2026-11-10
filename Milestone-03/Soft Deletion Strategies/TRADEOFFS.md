@@ -41,15 +41,19 @@ PostgreSQL does not always use an index. Its query planner considers table size,
 
 ### 1.3 At what data volume does performance become a concern?
 
-There is no universal PostgreSQL row-count threshold. For LedgerApp, use the following practical review thresholds:
+There is no fixed row-count threshold.
 
-- **100,000 records:** Begin monitoring query execution time and index usage.
-- **500,000 records:** Review query plans and test performance with realistic workloads.
-- **1,000,000 records:** Conduct a formal performance review and evaluate partitioning, archival, and retention strategies.
+Performance depends on:
 
-These are engineering review thresholds, not measured performance limits.
+- Total number of records.
+- Percentage of soft-deleted records.
+- Query frequency and complexity.
+- Available memory and disk performance.
+- Index design and database statistics.
 
-Use `EXPLAIN ANALYZE` to compare query execution plans and verify whether partial indexes are being used.
+For example, a table containing 1,000,000 rows with only 100,000 active records may require more storage and maintenance than a smaller table.
+
+Partial indexes help reduce index overhead, but query plans should be checked using `EXPLAIN ANALYZE` with representative data.
 
 ## 2. Design Reasoning
 
@@ -89,20 +93,20 @@ A regulatory body requests transaction history for a particular user over the pr
 
 Because LedgerApp uses soft deletion, deleted transactions remain stored with their `deleted_at` timestamps.
 
-An authorized audit query can retrieve only the soft-deleted transactions belonging to a particular user:
+An authorized database query can retrieve both active and deleted transactions:
 
 ```sql
 SELECT t.*
 FROM transactions AS t
 INNER JOIN accounts AS a ON a.id = t.account_id
 WHERE a.user_id = $1
-  AND t.deleted_at IS NOT NULL
 ORDER BY t.created_at;
 ```
 
-The condition `t.deleted_at IS NOT NULL` ensures that only soft-deleted transactions are returned.
+This query does not filter out soft-deleted records.
 
 However, soft deletion alone does not guarantee that records are unaltered or provide a complete audit trail. A production financial system should also implement appropriate access controls, immutable audit logging, backup policies, and retention procedures.
+
 ## 4. Limitations of the Current Implementation
 
 1. **Storage growth:** Deleted records remain in the database and increase storage usage.

@@ -238,3 +238,9 @@ LedgerApp/
 LedgerApp demonstrates how soft deletion can improve data retention in a financial application.
 
 By combining timestamp-based deletion, active-record filtering, partial indexes, parent-child deletion rules, and automated endpoint tests, the implementation reduces the risk of accidental permanent data loss while documenting important security and operational limitations.
+## Live Deployment
+
+The LedgerApp API is deployed on Render.
+
+**Live URL:** https://soft-deletion-strategies.onrender.com
+
